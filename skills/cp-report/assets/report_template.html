@@ -272,15 +272,22 @@ function cpaClass(cpa) {
 }
 
 function shortName(name) {
-  // Remove bracket tags like [GSN][Bewirtschaftung][BE] → use content of second bracket
-  var parts = name.match(/\[([^\]]+)\]/g);
-  if (parts && parts.length >= 2) {
-    return parts[1].replace(/[\[\]]/g, '');
+  var kvMatch = name.match(/\[([a-z]+):([^\]]+)\]/gi);
+  if (kvMatch) {
+    var kv = {};
+    kvMatch.forEach(function(part) {
+      var m = part.match(/\[([a-z]+):([^\]]+)\]/i);
+      if (m) kv[m[1].toLowerCase()] = m[2];
+    });
+    var n = kv['n'] || '';
+    var s = kv['s'] || '';
+    var t = kv['t'] || '';
+    if (n && s) return n + ' · ' + s;
+    if (n && t) return n + ' · ' + t;
+    if (s) return s;
+    if (n) return n;
   }
-  if (name.toUpperCase().includes('PMAX') || name.toUpperCase().includes('PERFORMANCE_MAX')) {
-    return 'PMAX Brand';
-  }
-  return name.replace(/\[.*?\]/g, '').trim() || name;
+  return name.replace(/\s*-\s*\d{4}-\d{2}-\d{2}/, '').trim() || name;
 }
 
 function typeBadge(type) {
@@ -436,35 +443,43 @@ function render() {
     tbody.appendChild(tr);
   });
 
+  // Empfehlungen zuerst (unabhängig vom Chart)
+  generateRecommendations(campaigns, currency);
+
   // Chart
   var chartData = active.slice().sort(function(a, b) { return b['metrics.cost'] - a['metrics.cost']; });
   if (chartData.length > 0) {
-    var colors = ['#2a7dd4','#16a34a','#d97706','#dc2626','#6366f1','#0891b2','#7c3aed','#db2777'];
-    var ctx = document.getElementById('costChart').getContext('2d');
-    new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: chartData.map(function(c) { return shortName(c['campaign.name']); }),
-        datasets: [{
-          label: 'Kosten ' + currency,
-          data: chartData.map(function(c) { return c['metrics.cost']; }),
-          backgroundColor: chartData.map(function(_, i) { return colors[i % colors.length]; }),
-          borderRadius: 6
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
-        scales: {
-          y: {
-            ticks: { callback: function(v) { return currency + ' ' + fmt(v); } },
-            grid: { color: '#f3f4f6' }
-          },
-          x: { grid: { display: false } }
+    try {
+      var colors = ['#2a7dd4','#16a34a','#d97706','#dc2626','#6366f1','#0891b2','#7c3aed','#db2777'];
+      var ctx = document.getElementById('costChart').getContext('2d');
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: chartData.map(function(c) { return shortName(c['campaign.name']); }),
+          datasets: [{
+            label: 'Kosten ' + currency,
+            data: chartData.map(function(c) { return c['metrics.cost']; }),
+            backgroundColor: chartData.map(function(_, i) { return colors[i % colors.length]; }),
+            borderRadius: 6
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            y: {
+              ticks: { callback: function(v) { return currency + ' ' + fmt(v); } },
+              grid: { color: '#f3f4f6' }
+            },
+            x: { grid: { display: false } }
+          }
         }
-      }
-    });
+      });
+    } catch(e) {
+      document.getElementById('costChart').parentElement.innerHTML =
+        '<p style="color:#9ca3af;font-size:13px;padding:20px 0;">Chart konnte nicht geladen werden.</p>';
+    }
   }
 
   // Kundenansicht Kampagnen
@@ -486,8 +501,6 @@ function render() {
       + '</div>';
     kundeEl.appendChild(div);
   });
-
-  generateRecommendations(campaigns, currency);
 }
 
 render();
