@@ -1,0 +1,16 @@
+{
+  "name": "codeplay-plugins",
+  "owner": {
+    "name": "Codeplay GmbH"
+  },
+  "description": "Codeplay Claude Code plugins (Marketing, Reports).",
+  "plugins": [
+    {
+      "name": "codeplay-marketing",
+      "source": "./",
+      "description": "Codeplay Marketing Plugin — monatliche Performance Reports.",
+      "version": "1.0.0",
+      "repository": "https://github.com/codeplay-CH/claude-marketplace-codeplay"
+    }
+  ]
+}
