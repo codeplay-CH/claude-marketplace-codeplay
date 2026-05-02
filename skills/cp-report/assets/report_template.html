@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>__CLIENT_NAME__ – Google Ads Report</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.js" integrity="sha384-iU8HYtnGQ8Cy4zl7gbNMOhsDTTKX02BTXptVP/vqAWIaTfM7isw76iyZCsjL2eVi" crossorigin="anonymous"></script>
+<style>
+:root {
+  color-scheme: light;
+  --brand: #1a3a5c;
+  --brand-light: #e8f0f8;
+  --accent: #2a7dd4;
+  --green: #16a34a;
+  --red: #dc2626;
+  --orange: #d97706;
+  --gray-50: #f9fafb;
+  --gray-100: #f3f4f6;
+  --gray-200: #e5e7eb;
+  --gray-400: #9ca3af;
+  --gray-600: #4b5563;
+  --gray-800: #1f2937;
+  --radius: 10px;
+  --shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--gray-50);
+  color: var(--gray-800);
+  font-size: 14px;
+  line-height: 1.5;
+}
+.header {
+  background: var(--brand);
+  color: white;
+  padding: 20px 24px 16px;
+}
+.header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.header-logo { font-size: 18px; font-weight: 700; letter-spacing: -0.3px; }
+.header-logo span { opacity: 0.6; font-weight: 400; font-size: 14px; margin-left: 8px; }
+.header-meta { display: flex; align-items: center; gap: 10px; }
+.period-badge {
+  background: rgba(255,255,255,0.15);
+  border-radius: 20px;
+  padding: 4px 12px;
+  font-size: 13px;
+  font-weight: 500;
+}
+.generated-badge {
+  opacity: 0.55;
+  font-size: 12px;
+}
+.view-toggle { display: flex; gap: 6px; }
+.toggle-btn {
+  padding: 6px 16px;
+  border-radius: 20px;
+  border: none;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.15s;
+  background: rgba(255,255,255,0.15);
+  color: rgba(255,255,255,0.8);
+}
+.toggle-btn.active { background: white; color: var(--brand); }
+.content { padding: 20px 24px; max-width: 960px; }
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.kpi-card {
+  background: white;
+  border-radius: var(--radius);
+  padding: 16px;
+  box-shadow: var(--shadow);
+  border-left: 3px solid var(--accent);
+}
+.kpi-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--gray-400); font-weight: 600; margin-bottom: 6px; }
+.kpi-value { font-size: 26px; font-weight: 700; color: var(--gray-800); line-height: 1; }
+.kpi-sub { font-size: 12px; color: var(--gray-400); margin-top: 4px; }
+.kpi-card.green { border-left-color: var(--green); }
+.kpi-card.green .kpi-value { color: var(--green); }
+.section {
+  background: white;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+.section-header {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--gray-100);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.section-title { font-size: 14px; font-weight: 600; color: var(--gray-800); }
+.section-body { padding: 18px; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th {
+  text-align: left;
+  padding: 8px 10px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--gray-400);
+  font-weight: 600;
+  border-bottom: 1px solid var(--gray-100);
+}
+th.num, td.num { text-align: right; }
+td { padding: 10px; border-bottom: 1px solid var(--gray-100); color: var(--gray-800); }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: var(--gray-50); }
+.badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; }
+.badge-active { background: #dcfce7; color: #16a34a; }
+.badge-paused { background: #fef3c7; color: #92400e; }
+.cpa-good { color: var(--green); font-weight: 600; }
+.cpa-warn { color: var(--orange); font-weight: 600; }
+.cpa-bad { color: var(--red); font-weight: 600; }
+.chart-wrap { position: relative; height: 220px; }
+.reco-list { list-style: none; }
+.reco-item { display: flex; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--gray-100); }
+.reco-item:last-child { border-bottom: none; }
+.reco-icon { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; margin-top: 2px; }
+.reco-icon.high { background: #fee2e2; }
+.reco-icon.med  { background: #fef3c7; }
+.reco-icon.low  { background: #dcfce7; }
+.reco-text strong { display: block; font-size: 13px; margin-bottom: 2px; }
+.reco-text span { font-size: 12px; color: var(--gray-600); }
+.result-summary { display: flex; gap: 12px; margin-bottom: 16px; }
+.result-block { flex: 1; background: var(--brand-light); border-radius: var(--radius); padding: 16px; text-align: center; }
+.result-block .num { font-size: 30px; font-weight: 700; color: var(--brand); }
+.result-block .lbl { font-size: 12px; color: var(--gray-600); margin-top: 3px; }
+.campaign-row-kunde { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--gray-100); }
+.campaign-row-kunde:last-child { border-bottom: none; }
+.camp-name-kunde { font-weight: 600; font-size: 13px; }
+.camp-meta-kunde { font-size: 12px; color: var(--gray-400); margin-top: 2px; }
+.camp-result-kunde { text-align: right; }
+.camp-result-kunde .conv { font-size: 20px; font-weight: 700; color: var(--green); }
+.camp-result-kunde .cost { font-size: 12px; color: var(--gray-400); }
+.footer { text-align: center; padding: 20px 16px 24px; font-size: 11px; color: var(--gray-400); }
+.hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div class="header-logo">__CLIENT_NAME__ <span>Google Ads Report</span></div>
+    <div class="header-meta">
+      <div class="period-badge">Letzte 30 Tage</div>
+      <div class="generated-badge">__GENERATED_AT__</div>
+    </div>
+  </div>
+  <div class="view-toggle">
+    <button class="toggle-btn active" onclick="setView('intern')">Intern (Codeplay)</button>
+    <button class="toggle-btn" onclick="setView('kunde')">Kundenansicht</button>
+  </div>
+</div>
+
+<div class="content">
+  <!-- KPI Summary (beide Ansichten) -->
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-label">Gesamtkosten</div>
+      <div class="kpi-value" id="kpiCost">—</div>
+      <div class="kpi-sub" id="kpiCurrency">CHF / Monat</div>
+    </div>
+    <div class="kpi-card green">
+      <div class="kpi-label">Conversions</div>
+      <div class="kpi-value" id="kpiConv">—</div>
+      <div class="kpi-sub">Letzte 30 Tage</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Ø CPA</div>
+      <div class="kpi-value" id="kpiCpa">—</div>
+      <div class="kpi-sub" id="kpiCpaUnit">CHF pro Conversion</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Klicks</div>
+      <div class="kpi-value" id="kpiClicks">—</div>
+      <div class="kpi-sub">Gesamt</div>
+    </div>
+  </div>
+
+  <!-- INTERN -->
+  <div id="viewIntern">
+    <div class="section">
+      <div class="section-header"><div class="section-title">Kampagnen-Performance</div></div>
+      <div class="section-body" style="padding:0;">
+        <table>
+          <thead>
+            <tr>
+              <th>Kampagne</th>
+              <th>Typ</th>
+              <th>Status</th>
+              <th class="num">Impr.</th>
+              <th class="num">Klicks</th>
+              <th class="num">CTR</th>
+              <th class="num">Kosten</th>
+              <th class="num">Conv.</th>
+              <th class="num">CPA</th>
+            </tr>
+          </thead>
+          <tbody id="campaignTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-header"><div class="section-title">Kostenverteilung nach Kampagne</div></div>
+      <div class="section-body">
+        <div class="chart-wrap"><canvas id="costChart"></canvas></div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-header"><div class="section-title">Empfehlungen</div></div>
+      <div class="section-body">
+        <ul class="reco-list" id="recoList"></ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- KUNDE -->
+  <div id="viewKunde" class="hidden">
+    <div class="section">
+      <div class="section-header"><div class="section-title">Zusammenfassung</div></div>
+      <div class="section-body">
+        <div class="result-summary">
+          <div class="result-block"><div class="num" id="kundeConv">—</div><div class="lbl">Anfragen generiert</div></div>
+          <div class="result-block"><div class="num" id="kundeCost">—</div><div class="lbl" id="kundeCostLbl">CHF investiert</div></div>
+          <div class="result-block"><div class="num" id="kundeCpa">—</div><div class="lbl" id="kundeCpaLbl">CHF pro Anfrage</div></div>
+        </div>
+        <div id="kundeKampagnen"></div>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-header"><div class="section-title">Was wir im nächsten Monat tun</div></div>
+      <div class="section-body">
+        <ul class="reco-list" id="kundeRecoList"></ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="footer">__CLIENT_NAME__ · Google Ads Report · __GENERATED_AT__ · Powered by Codeplay</div>
+
+<script>
+var REPORT_DATA = __REPORT_DATA_JSON__;
+
+function fmt(n, dec) {
+  dec = dec === undefined ? 0 : dec;
+  if (n === undefined || n === null || isNaN(n)) return '—';
+  if (n === 0 && dec === 0) return '0';
+  return Number(n).toLocaleString('de-CH', { minimumFractionDigits: dec, maximumFractionDigits: dec });
+}
+
+function cpaClass(cpa) {
+  if (!cpa || cpa === 0) return '';
+  if (cpa < 15) return 'cpa-good';
+  if (cpa < 60) return 'cpa-warn';
+  return 'cpa-bad';
+}
+
+function shortName(name) {
+  // Remove bracket tags like [GSN][Bewirtschaftung][BE] → use content of second bracket
+  var parts = name.match(/\[([^\]]+)\]/g);
+  if (parts && parts.length >= 2) {
+    return parts[1].replace(/[\[\]]/g, '');
+  }
+  if (name.toUpperCase().includes('PMAX') || name.toUpperCase().includes('PERFORMANCE_MAX')) {
+    return 'PMAX Brand';
+  }
+  return name.replace(/\[.*?\]/g, '').trim() || name;
+}
+
+function typeBadge(type) {
+  if (type === 'PERFORMANCE_MAX') return 'PMax';
+  if (type === 'SEARCH') return 'Search';
+  if (type === 'DISPLAY') return 'Display';
+  if (type === 'VIDEO') return 'Video';
+  return type || '—';
+}
+
+function setView(v) {
+  document.querySelectorAll('.toggle-btn').forEach(function(b, i) {
+    b.classList.toggle('active', (i === 0 && v === 'intern') || (i === 1 && v === 'kunde'));
+  });
+  document.getElementById('viewIntern').classList.toggle('hidden', v !== 'intern');
+  document.getElementById('viewKunde').classList.toggle('hidden', v !== 'kunde');
+}
+
+function renderRecos(listId, items) {
+  var list = document.getElementById(listId);
+  list.innerHTML = '';
+  items.forEach(function(r) {
+    var li = document.createElement('li');
+    li.className = 'reco-item';
+    li.innerHTML = '<div class="reco-icon ' + r.prio + '">' + r.icon + '</div>'
+      + '<div class="reco-text"><strong>' + r.title + '</strong><span>' + r.text + '</span></div>';
+    list.appendChild(li);
+  });
+}
+
+function generateRecommendations(campaigns, currency) {
+  var recos = [];
+  var kundeRecos = [];
+  var cur = currency || 'CHF';
+
+  var active = campaigns.filter(function(c) { return (c['metrics.cost'] || 0) > 0; });
+
+  active.forEach(function(c) {
+    var name = shortName(c['campaign.name']);
+    var cost = c['metrics.cost'] || 0;
+    var conv = c['metrics.conversions'] || 0;
+    var cpa  = c['metrics.cpa'] || 0;
+    var impr = c['metrics.impressions'] || 0;
+
+    if (cost > 100 && conv === 0) {
+      recos.push({ prio: 'high', icon: '🔴',
+        title: name + ': Keine Conversions',
+        text: cur + ' ' + fmt(cost, 2) + ' ausgegeben, 0 Conversions. Kampagne sofort pausieren — Tracking, Landing Page und Keywords prüfen.'
+      });
+      kundeRecos.push({ prio: 'high', icon: '🔴',
+        title: 'Budget effizienter einsetzen',
+        text: 'Eine Werbekampagne verursacht Kosten ohne messbare Ergebnisse. Wir stoppen sie und investieren das Budget gezielter.'
+      });
+    } else if (cost > 50 && cpa > 80) {
+      recos.push({ prio: 'high', icon: '🔴',
+        title: name + ': Sehr hoher CPA',
+        text: 'CPA ' + cur + ' ' + fmt(cpa, 2) + ' — deutlich über Zielwert. Kampagne pausieren oder komplett neu aufbauen.'
+      });
+      kundeRecos.push({ prio: 'high', icon: '🔴',
+        title: 'Kosten pro Anfrage zu hoch',
+        text: 'Eine Kampagne generiert Anfragen zu unverhältnismässig hohen Kosten. Wir optimieren das im nächsten Monat.'
+      });
+    } else if (cost > 30 && cpa > 30 && cpa <= 80) {
+      recos.push({ prio: 'med', icon: '🟡',
+        title: name + ': CPA optimieren',
+        text: 'CPA ' + cur + ' ' + fmt(cpa, 2) + ' — ausbaufähig. Keywords, Anzeigentexte und Gebotsstrategien prüfen.'
+      });
+    } else if (cpa > 0 && cpa < 15 && conv >= 5) {
+      recos.push({ prio: 'low', icon: '🟢',
+        title: name + ': Budget erhöhen',
+        text: 'CPA ' + cur + ' ' + fmt(cpa, 2) + ' mit ' + fmt(conv, 0) + ' Conversions — sehr effizient. Mehr Budget würde direkt mehr Conversions bringen.'
+      });
+      kundeRecos.push({ prio: 'low', icon: '🟢',
+        title: name + ': Stärke ausbauen',
+        text: 'Diese Kampagne läuft besonders gut und ist sehr kosteneffizient. Wir empfehlen, mehr in diesen Bereich zu investieren.'
+      });
+    }
+
+    if (impr > 0 && impr < 200 && cost < 5) {
+      recos.push({ prio: 'med', icon: '🟡',
+        title: name + ': Sehr wenig Sichtbarkeit',
+        text: 'Nur ' + fmt(impr) + ' Impressionen — Kampagne wird kaum ausgespielt. Budget, Gebote und Keywords prüfen.'
+      });
+    }
+  });
+
+  // Pausierte Kampagnen ohne Spend
+  var paused = campaigns.filter(function(c) {
+    return c['campaign.status'] === 'PAUSED' && (c['metrics.cost'] || 0) === 0;
+  });
+  if (paused.length > 0) {
+    recos.push({ prio: 'med', icon: '🟡',
+      title: paused.length + ' pausierte Kampagne' + (paused.length > 1 ? 'n' : '') + ' prüfen',
+      text: paused.map(function(c) { return shortName(c['campaign.name']); }).join(', ') + ' — reaktivieren oder löschen?'
+    });
+  }
+
+  if (recos.length === 0) {
+    recos.push({ prio: 'low', icon: '🟢', title: 'Performance stabil', text: 'Alle aktiven Kampagnen laufen im Zielbereich. Kontinuierliches Monitoring empfohlen.' });
+  }
+  if (kundeRecos.length === 0) {
+    kundeRecos.push({ prio: 'low', icon: '🟢', title: 'Gute Entwicklung', text: 'Ihre Kampagnen entwickeln sich positiv. Wir beobachten die Performance laufend und melden uns bei Optimierungsbedarf.' });
+  }
+
+  renderRecos('recoList', recos);
+  renderRecos('kundeRecoList', kundeRecos);
+}
+
+function render() {
+  var campaigns = REPORT_DATA.campaigns || [];
+  var currency = (campaigns[0] && campaigns[0]['metrics.currency']) || 'CHF';
+
+  var active = campaigns.filter(function(c) { return (c['metrics.cost'] || 0) > 0; });
+  var totalCost  = active.reduce(function(s, c) { return s + (c['metrics.cost'] || 0); }, 0);
+  var totalConv  = active.reduce(function(s, c) { return s + (c['metrics.conversions'] || 0); }, 0);
+  var totalClicks = active.reduce(function(s, c) { return s + (c['metrics.clicks'] || 0); }, 0);
+  var avgCpa = totalConv > 0 ? totalCost / totalConv : 0;
+
+  // KPIs
+  document.getElementById('kpiCost').textContent    = fmt(totalCost, 2);
+  document.getElementById('kpiConv').textContent    = fmt(totalConv, 0);
+  document.getElementById('kpiCpa').textContent     = avgCpa > 0 ? fmt(avgCpa, 2) : '—';
+  document.getElementById('kpiClicks').textContent  = fmt(totalClicks);
+  document.getElementById('kpiCurrency').textContent = currency + ' / Monat';
+  document.getElementById('kpiCpaUnit').textContent  = currency + ' pro Conversion';
+
+  // Kunde KPIs
+  document.getElementById('kundeConv').textContent  = fmt(totalConv, 0);
+  document.getElementById('kundeCost').textContent  = fmt(totalCost, 0);
+  document.getElementById('kundeCpa').textContent   = avgCpa > 0 ? fmt(avgCpa, 2) : '—';
+  document.getElementById('kundeCostLbl').textContent = currency + ' investiert';
+  document.getElementById('kundeCpaLbl').textContent  = currency + ' pro Anfrage';
+
+  // Kampagnentabelle (intern)
+  var tbody = document.getElementById('campaignTableBody');
+  campaigns.forEach(function(c) {
+    var status  = c['campaign.status'];
+    var hasCost = (c['metrics.cost'] || 0) > 0;
+    var cpa     = c['metrics.cpa'] || 0;
+    var ctr     = c['metrics.ctr'] || 0;
+    var cur     = c['metrics.currency'] || currency;
+    var tr = document.createElement('tr');
+    tr.innerHTML =
+      '<td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="' + c['campaign.name'] + '">' + shortName(c['campaign.name']) + '</td>'
+      + '<td>' + typeBadge(c['campaign.advertising_channel_type']) + '</td>'
+      + '<td><span class="badge ' + (status === 'ENABLED' ? 'badge-active' : 'badge-paused') + '">' + (status === 'ENABLED' ? 'Aktiv' : 'Pausiert') + '</span></td>'
+      + '<td class="num">' + (hasCost ? fmt(c['metrics.impressions']) : '—') + '</td>'
+      + '<td class="num">' + (hasCost ? fmt(c['metrics.clicks']) : '—') + '</td>'
+      + '<td class="num">' + (hasCost ? (ctr * 100).toFixed(1) + '%' : '—') + '</td>'
+      + '<td class="num">' + (hasCost ? cur + ' ' + fmt(c['metrics.cost'], 2) : '—') + '</td>'
+      + '<td class="num">' + (hasCost ? fmt(c['metrics.conversions'], 1) : '—') + '</td>'
+      + '<td class="num ' + (hasCost ? cpaClass(cpa) : '') + '">' + (hasCost && cpa > 0 ? cur + ' ' + fmt(cpa, 2) : '—') + '</td>';
+    tbody.appendChild(tr);
+  });
+
+  // Chart
+  var chartData = active.slice().sort(function(a, b) { return b['metrics.cost'] - a['metrics.cost']; });
+  if (chartData.length > 0) {
+    var colors = ['#2a7dd4','#16a34a','#d97706','#dc2626','#6366f1','#0891b2','#7c3aed','#db2777'];
+    var ctx = document.getElementById('costChart').getContext('2d');
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: chartData.map(function(c) { return shortName(c['campaign.name']); }),
+        datasets: [{
+          label: 'Kosten ' + currency,
+          data: chartData.map(function(c) { return c['metrics.cost']; }),
+          backgroundColor: chartData.map(function(_, i) { return colors[i % colors.length]; }),
+          borderRadius: 6
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: {
+            ticks: { callback: function(v) { return currency + ' ' + fmt(v); } },
+            grid: { color: '#f3f4f6' }
+          },
+          x: { grid: { display: false } }
+        }
+      }
+    });
+  }
+
+  // Kundenansicht Kampagnen
+  var kundeEl = document.getElementById('kundeKampagnen');
+  campaigns.filter(function(c) {
+    return c['campaign.status'] === 'ENABLED' && (c['metrics.cost'] || 0) > 0;
+  }).forEach(function(c) {
+    var cur = c['metrics.currency'] || currency;
+    var div = document.createElement('div');
+    div.className = 'campaign-row-kunde';
+    div.innerHTML =
+      '<div>'
+      + '<div class="camp-name-kunde">' + shortName(c['campaign.name']) + '</div>'
+      + '<div class="camp-meta-kunde">' + fmt(c['metrics.clicks']) + ' Klicks · ' + fmt(c['metrics.impressions']) + ' Einblendungen</div>'
+      + '</div>'
+      + '<div class="camp-result-kunde">'
+      + '<div class="conv">' + fmt(c['metrics.conversions'], 0) + '</div>'
+      + '<div class="cost">Anfragen · ' + cur + ' ' + fmt(c['metrics.cost'], 0) + '</div>'
+      + '</div>';
+    kundeEl.appendChild(div);
+  });
+
+  generateRecommendations(campaigns, currency);
+}
+
+render();
+</script>
+</body>
+</html>
