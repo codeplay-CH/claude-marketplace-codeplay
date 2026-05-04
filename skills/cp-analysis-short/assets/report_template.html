@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kurzanalyse {{DOMAIN}} — {{DATUM}}</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f4f5f7; color: #1a1a2e; font-size: 14px; line-height: 1.6; }
+
+    header { background: #1a1a2e; color: #fff; padding: 32px 40px; }
+    header h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.3px; }
+    header p { opacity: 0.5; font-size: 13px; margin-top: 4px; }
+
+    /* ── KPI Strip ── */
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; padding: 28px 40px 0; }
+    .kpi { background: #fff; border-radius: 10px; padding: 20px 22px; border-left: 4px solid #6c63ff; }
+    .kpi.warn   { border-left-color: #f59e0b; }
+    .kpi.danger { border-left-color: #ef4444; }
+    .kpi.ok     { border-left-color: #10b981; }
+    .kpi .label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; color: #888; }
+    .kpi .value { font-size: 28px; font-weight: 700; color: #1a1a2e; margin-top: 4px; }
+    .kpi .sub   { font-size: 11px; color: #aaa; margin-top: 2px; }
+
+    /* ── Sections ── */
+    .section    { padding: 28px 40px 0; }
+    .section h2 { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #6c63ff; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+    .badge      { background: #6c63ff18; border-radius: 4px; padding: 2px 8px; font-size: 10px; color: #6c63ff; }
+    .badge.warn { background: #f59e0b18; color: #f59e0b; }
+    .badge.err  { background: #ef444418; color: #ef4444; }
+
+    /* ── Cards ── */
+    .card    { background: #fff; border-radius: 10px; padding: 20px 24px; margin-bottom: 16px; }
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+    /* ── Tables ── */
+    table   { width: 100%; border-collapse: collapse; }
+    thead tr { border-bottom: 2px solid #f0f0f0; }
+    th { font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px; color: #999; font-weight: 600; padding: 8px 12px; text-align: left; }
+    td { padding: 9px 12px; border-bottom: 1px solid #f5f5f5; color: #333; font-size: 13px; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #fafafa; }
+
+    /* ── Inline bar ── */
+    .bar-wrap { display: flex; align-items: center; gap: 8px; }
+    .bar      { height: 6px; border-radius: 3px; background: #6c63ff; min-width: 2px; }
+    .bar.warn   { background: #f59e0b; }
+    .bar.ok     { background: #10b981; }
+    .bar.danger { background: #ef4444; }
+
+    /* ── Insight boxes ── */
+    .insight        { display: flex; gap: 12px; padding: 12px 16px; border-radius: 8px; margin-bottom: 10px; font-size: 13px; }
+    .insight.red    { background: #fef2f2; color: #991b1b; }
+    .insight.yellow { background: #fffbeb; color: #92400e; }
+    .insight.green  { background: #f0fdf4; color: #065f46; }
+    .insight.blue   { background: #eff6ff; color: #1e40af; }
+    .insight .icon  { font-size: 16px; flex-shrink: 0; }
+
+    /* ── Tags ── */
+    .tag      { display: inline-block; background: #f0f0f5; border-radius: 4px; padding: 2px 8px; font-size: 11px; color: #555; margin: 2px; }
+    .tag.opp  { background: #6c63ff18; color: #6c63ff; }
+    .tag.comp { background: #f59e0b18; color: #b45309; }
+
+    /* ── Footer ── */
+    footer { padding: 28px 40px 40px; color: #bbb; font-size: 11px; }
+    footer span { margin-right: 16px; }
+
+    @media (max-width: 700px) {
+      .grid, .section { padding: 20px; }
+      .two-col { grid-template-columns: 1fr; }
+      header { padding: 24px 20px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════
+     HEADER
+     Variablen: {{DOMAIN}}, {{DATUM}}, {{QUELLEN}}
+     ═══════════════════════════════════════════ -->
+<header>
+  <h1>Kurzanalyse · {{DOMAIN}}</h1>
+  <p>Datenstand: {{DATUM}} · Quellen: {{QUELLEN}}</p>
+</header>
+
+
+<!-- ═══════════════════════════════════════════
+     KPI STRIP
+     6 Kacheln. Klassen: ok / warn / danger
+     Variablen pro Kachel: {{KPI_LABEL}}, {{KPI_VALUE}}, {{KPI_SUB}}
+     ═══════════════════════════════════════════ -->
+<div class="grid">
+
+  <div class="kpi {{KPI_1_STATUS}}">
+    <div class="label">{{KPI_1_LABEL}}</div>
+    <div class="value">{{KPI_1_VALUE}}</div>
+    <div class="sub">{{KPI_1_SUB}}</div>
+  </div>
+
+  <div class="kpi {{KPI_2_STATUS}}">
+    <div class="label">{{KPI_2_LABEL}}</div>
+    <div class="value">{{KPI_2_VALUE}}</div>
+    <div class="sub">{{KPI_2_SUB}}</div>
+  </div>
+
+  <div class="kpi {{KPI_3_STATUS}}">
+    <div class="label">{{KPI_3_LABEL}}</div>
+    <div class="value">{{KPI_3_VALUE}}</div>
+    <div class="sub">{{KPI_3_SUB}}</div>
+  </div>
+
+  <div class="kpi {{KPI_4_STATUS}}">
+    <div class="label">{{KPI_4_LABEL}}</div>
+    <div class="value">{{KPI_4_VALUE}}</div>
+    <div class="sub">{{KPI_4_SUB}}</div>
+  </div>
+
+  <div class="kpi {{KPI_5_STATUS}}">
+    <div class="label">{{KPI_5_LABEL}}</div>
+    <div class="value">{{KPI_5_VALUE}}</div>
+    <div class="sub">{{KPI_5_SUB}}</div>
+  </div>
+
+  <div class="kpi {{KPI_6_STATUS}}">
+    <div class="label">{{KPI_6_LABEL}}</div>
+    <div class="value">{{KPI_6_VALUE}}</div>
+    <div class="sub">{{KPI_6_SUB}}</div>
+  </div>
+
+</div>
+
+
+<!-- ═══════════════════════════════════════════
+     KERNERKENNTNIS
+     Insight-Boxen: Klassen red / yellow / green / blue
+     Icons: 🔴 ⚠️ ✅ ℹ️
+     Anzahl Boxen variabel — nicht benötigte löschen.
+     ═══════════════════════════════════════════ -->
+<div class="section">
+  <h2>Kernerkenntnis</h2>
+
+  <div class="insight red">
+    <span class="icon">🔴</span>
+    <span><strong>{{INSIGHT_1_TITEL}}:</strong> {{INSIGHT_1_TEXT}}</span>
+  </div>
+
+  <div class="insight yellow">
+    <span class="icon">⚠️</span>
+    <span><strong>{{INSIGHT_2_TITEL}}:</strong> {{INSIGHT_2_TEXT}}</span>
+  </div>
+
+  <div class="insight yellow">
+    <span class="icon">⚠️</span>
+    <span><strong>{{INSIGHT_3_TITEL}}:</strong> {{INSIGHT_3_TEXT}}</span>
+  </div>
+
+  <div class="insight blue">
+    <span class="icon">ℹ️</span>
+    <span><strong>{{INSIGHT_4_TITEL}}:</strong> {{INSIGHT_4_TEXT}}</span>
+  </div>
+
+  <div class="insight green">
+    <span class="icon">✅</span>
+    <span><strong>{{INSIGHT_5_TITEL}}:</strong> {{INSIGHT_5_TEXT}}</span>
+  </div>
+
+</div>
+
+
+<!-- ═══════════════════════════════════════════
+     GOOGLE SEARCH CONSOLE
+     Zwei Tabellen nebeneinander:
+     Links: Top Queries · Rechts: Top Seiten
+     Bar-Breite in px schätzen (max ~80px für 100%)
+     ═══════════════════════════════════════════ -->
+<div class="section">
+  <h2>Google Search Console <span class="badge">{{GSC_ZEITRAUM}}</span></h2>
+  <div class="two-col">
+
+    <!-- Top Queries -->
+    <div class="card">
+      <table>
+        <thead>
+          <tr><th>Query</th><th>Klicks</th><th>Impr.</th><th>CTR</th><th>Pos.</th></tr>
+        </thead>
+        <tbody>
+          <!-- Zeile wiederholen für jeden Query -->
+          <tr>
+            <td>{{QUERY}}</td>
+            <td>{{KLICKS}}</td>
+            <td>{{IMPRESSIONEN}}</td>
+            <td>
+              <div class="bar-wrap">
+                <div class="bar {{BAR_STATUS}}" style="width:{{BAR_PX}}px"></div>
+                {{CTR}}
+              </div>
+            </td>
+            <td>{{POSITION}}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Top Seiten -->
+    <div class="card">
+      <table>
+        <thead>
+          <tr><th>Seite</th><th>Klicks</th><th>Impr.</th><th>CTR</th></tr>
+        </thead>
+        <tbody>
+          <!-- Zeile wiederholen für jede Seite -->
+          <tr>
+            <td>{{SEITEN_PFAD}}</td>
+            <td>{{KLICKS}}</td>
+            <td>{{IMPRESSIONEN}}</td>
+            <td>
+              <div class="bar-wrap">
+                <div class="bar {{BAR_STATUS}}" style="width:{{BAR_PX}}px"></div>
+                {{CTR}}
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════
+     SISTRIX SEO
+     Links: Kennzahlen · Rechts: Opportunities + Wettbewerber
+     ═══════════════════════════════════════════ -->
+<div class="section">
+  <h2>Sistrix SEO <span class="badge">{{SISTRIX_LAND}}</span></h2>
+  <div class="two-col">
+
+    <!-- Kennzahlen -->
+    <div class="card">
+      <table>
+        <thead><tr><th>Metrik</th><th>Wert</th></tr></thead>
+        <tbody>
+          <tr><td>Aktueller VI</td><td>{{VI_AKTUELL}}</td></tr>
+          <tr><td>Maximum</td><td>{{VI_MAX}} ({{VI_MAX_DATUM}})</td></tr>
+          <tr><td>Rankende Keywords</td><td><strong>{{KW_TOTAL}}</strong></td></tr>
+          <tr><td>Keywords Seite 1</td><td>{{KW_SEITE1}}</td></tr>
+          <tr><td>Keywords Seite 2</td><td>{{KW_SEITE2}}</td></tr>
+          <tr><td>Geschätzter Traffic</td><td>{{TRAFFIC_SCHAETZUNG}}</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Opportunities + Wettbewerber -->
+    <div class="card">
+      <p style="margin-bottom:14px; color:#666; font-size:13px;">Opportunities (Sistrix Gain-Score)</p>
+      <table>
+        <thead><tr><th>Keyword</th><th>Gain</th><th>Pos.</th></tr></thead>
+        <tbody>
+          <!-- Zeile wiederholen -->
+          <tr>
+            <td><span class="tag opp">{{OPP_KEYWORD}}</span></td>
+            <td>{{OPP_GAIN}}</td>
+            <td>{{OPP_POSITION}}</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div style="margin-top:14px">
+        <p style="font-size:11px;color:#999;margin-bottom:6px;">SEO-Wettbewerber</p>
+        <!-- Tag wiederholen -->
+        <span class="tag comp">{{WETTBEWERBER}}</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════
+     GA4
+     Wenn nicht verfügbar: Insight-Box statt Tabelle.
+     Wenn verfügbar: Kanal-Tabelle einsetzen.
+     ═══════════════════════════════════════════ -->
+<div class="section">
+  <h2>GA4 <span class="badge {{GA4_BADGE_STATUS}}">{{GA4_BADGE_TEXT}}</span></h2>
+  <div class="card">
+
+    <!-- Option A: Nicht verfügbar -->
+    <div class="insight yellow" style="margin-bottom:0">
+      <span class="icon">⚠️</span>
+      <span>{{GA4_FEHLER_TEXT}}</span>
+    </div>
+
+    <!-- Option B: Verfügbar — diese Tabelle einsetzen, Option A entfernen
+    <table>
+      <thead>
+        <tr><th>Kanal</th><th>Sessions</th><th>Users</th><th>Neue Users</th><th>Seiten/Session</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>{{KANAL}}</td>
+          <td>{{SESSIONS}}</td>
+          <td>{{USERS}}</td>
+          <td>{{NEUE_USERS}}</td>
+          <td>{{SEITEN_PRO_SESSION}}</td>
+        </tr>
+      </tbody>
+    </table>
+    -->
+
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════
+     SCREAMING FROG
+     Wenn GUI läuft: Hinweis-Box.
+     Wenn Daten da: Fehler-Tabelle einsetzen.
+     ═══════════════════════════════════════════ -->
+<div class="section">
+  <h2>Screaming Frog <span class="badge">{{SF_CRAWL_INFO}}</span></h2>
+  <div class="card">
+
+    <!-- Option A: GUI läuft / kein Export -->
+    <div class="insight blue" style="margin-bottom:0">
+      <span class="icon">ℹ️</span>
+      <span>{{SF_HINWEIS_TEXT}}</span>
+    </div>
+
+    <!-- Option B: Fehler vorhanden — diese Tabelle einsetzen, Option A entfernen
+    <table>
+      <thead>
+        <tr><th>Typ</th><th>Anzahl URLs</th><th>Beispiel</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>{{FEHLER_TYP}}</td>
+          <td>{{FEHLER_ANZAHL}}</td>
+          <td>{{FEHLER_BEISPIEL}}</td>
+        </tr>
+      </tbody>
+    </table>
+    -->
+
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════
+     TOP 5 MASSNAHMEN
+     Spalten: #, Massnahme, Hebel (🔴/🟠/🟡), Aufwand
+     ═══════════════════════════════════════════ -->
+<div class="section">
+  <h2>Top 5 Massnahmen</h2>
+  <div class="card">
+    <table>
+      <thead>
+        <tr><th>#</th><th>Massnahme</th><th>Hebel</th><th>Aufwand</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>1</strong></td>
+          <td>{{MASSNAHME_1}}</td>
+          <td>{{HEBEL_1}}</td>
+          <td>{{AUFWAND_1}}</td>
+        </tr>
+        <tr>
+          <td><strong>2</strong></td>
+          <td>{{MASSNAHME_2}}</td>
+          <td>{{HEBEL_2}}</td>
+          <td>{{AUFWAND_2}}</td>
+        </tr>
+        <tr>
+          <td><strong>3</strong></td>
+          <td>{{MASSNAHME_3}}</td>
+          <td>{{HEBEL_3}}</td>
+          <td>{{AUFWAND_3}}</td>
+        </tr>
+        <tr>
+          <td><strong>4</strong></td>
+          <td>{{MASSNAHME_4}}</td>
+          <td>{{HEBEL_4}}</td>
+          <td>{{AUFWAND_4}}</td>
+        </tr>
+        <tr>
+          <td><strong>5</strong></td>
+          <td>{{MASSNAHME_5}}</td>
+          <td>{{HEBEL_5}}</td>
+          <td>{{AUFWAND_5}}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+
+<footer>
+  <span>Generiert: {{DATUM}}</span>
+  <span>Quellen: {{QUELLEN}}</span>
+</footer>
+
+</body>
+</html>
