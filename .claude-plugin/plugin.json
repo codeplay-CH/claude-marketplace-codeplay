@@ -1,7 +1,7 @@
 {
   "name": "codeplay-marketing",
   "description": "Codeplay Marketing Plugin — monatliche Performance Reports.",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "repository": "https://github.com/codeplay-CH/claude-marketplace-codeplay",
   "author": {
     "name": "Codeplay GmbH",

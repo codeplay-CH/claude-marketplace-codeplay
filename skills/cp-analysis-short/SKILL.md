@@ -83,9 +83,10 @@ Bevor du das Template befüllst, leite aus den Rohdaten folgende Punkte ab:
 
 ## Schritt 4: Template lesen und befüllen
 
-Lese das Template aus `assets/report-template.html` (relativ zum Skill-Verzeichnis).
+Lese das Template aus `assets/report_template.html` (relativ zum Skill-Verzeichnis).
 
 Befülle alle `{{VARIABLEN}}` mit den echten Daten:
+- GSC: Top-Queries-Zeilen nutzen `GSC_Q_*` (z. B. `GSC_Q_QUERY`, `GSC_Q_KLICKS`, `GSC_Q_BAR_PX`), Top-Seiten `GSC_P_*` (z. B. `GSC_P_SEITE`, `GSC_P_KLICKS`, `GSC_P_BAR_PX`) — so kollidieren die Platzhalter nicht zwischen den beiden Tabellen
 - Nicht benötigte Zeilen (z.B. bei weniger als 5 Opportunities) einfach entfernen
 - Bei GA4/SF nicht verfügbar: Option A (Hinweis-Box) aktiv lassen, Option B auskommentiert lassen
 - Bei GA4/SF verfügbar: Option B aktivieren, Option A entfernen
