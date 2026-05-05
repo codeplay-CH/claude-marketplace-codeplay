@@ -99,7 +99,7 @@ Wähle Bar-Klasse nach CTR:
 
 ## Schritt 5: Report speichern
 
-Speicherpfad: `outputs/{{PROJEKTNAME}}/kurzanalyse-{{DATUM}}.html`
+Speicherpfad: `outputs/{{PROJEKTNAME}}/analysis-short-{{DATUM}}.html`
 
 Projektname = Domain ohne TLD und Punkte, z.B. `codeplay-ch` für `codeplay.ch`.
 Datum = `YYYY-MM-DD`.
