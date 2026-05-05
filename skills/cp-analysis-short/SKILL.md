@@ -17,7 +17,8 @@ Erstellt eine kompakte Kurzanalyse für eine Domain. Zieht Daten aus Google Sear
 Folgende MCPs müssen verbunden sein:
 - `mcp__gscServer__*` — Google Search Console
 - `mcp__sistrix__*` — Sistrix
-- `mcp__adloop__*` — GA4 (und optional Google Ads)
+- `mcp__adloop__*` — Google Ads
+- `mcp__analytics-mcp__*` — Google Analytics GA4 
 - `mcp__screaming-frog__*` — Screaming Frog SEO Spider
 
 ## Schritt 1: Domain klären
